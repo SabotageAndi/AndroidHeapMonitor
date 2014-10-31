@@ -21,6 +21,7 @@ namespace AndroidHeapMonitor.ViewModel
 
         private Timer _refreshTimer;
         private DumpsysMeminfo _dumpsysMeminfo;
+        private DumpsysMemInfoParser _dumpsysMemInfoParser;
 
         public MainViewModel(AndroidDebugBridge bridge)
         {
@@ -62,16 +63,21 @@ namespace AndroidHeapMonitor.ViewModel
             }
 
             _refreshTimer = new Timer(2500);
-            _refreshTimer.AutoReset = true;
+            _refreshTimer.AutoReset = false;
             _refreshTimer.Elapsed += _refreshTimer_Elapsed;
             _dumpsysMeminfo = new DumpsysMeminfo(_device);
+            _dumpsysMemInfoParser = new DumpsysMemInfoParser();
+
+            PackageName = "at.oebb.ikt.greenpoints";
         }
 
         void _refreshTimer_Elapsed(object sender, ElapsedEventArgs e)
         {
             var output = _dumpsysMeminfo.GetInfo(PackageName);
 
-            Output = output;
+            var dumpsysMemInfo = _dumpsysMemInfoParser.Parse(output);
+
+            _refreshTimer.Start();
         }
 
 
@@ -112,5 +118,8 @@ namespace AndroidHeapMonitor.ViewModel
             }
         }
 
+
+        
     }
+
 }

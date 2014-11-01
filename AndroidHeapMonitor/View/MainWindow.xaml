@@ -9,6 +9,7 @@
         xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
         xmlns:mvvm="clr-namespace:GalaSoft;assembly=GalaSoft.MvvmLight"
         xmlns:command="http://www.galasoft.ch/mvvmlight"
+        xmlns:validator="clr-namespace:AndroidHeapMonitor.Validator"
         d:DataContext="{d:DesignInstance ViewModels:MainViewModel, IsDesignTimeCreatable=False}"
         Title="{Binding Path=Title, Mode=OneWay}" Height="800" Width="1200" 
         >
@@ -34,13 +35,29 @@
                 <ColumnDefinition Width="Auto"></ColumnDefinition>
                 <ColumnDefinition Width="*"></ColumnDefinition>
                 <ColumnDefinition Width="Auto"></ColumnDefinition>
+                <ColumnDefinition Width="75"></ColumnDefinition>
+                <ColumnDefinition Width="Auto"></ColumnDefinition>
                 <ColumnDefinition Width="Auto"></ColumnDefinition>
             </Grid.ColumnDefinitions>
 
             <Label Grid.Column="0">Packagename:</Label>
             <TextBox Grid.Column="1" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Center" Text="{Binding Path=PackageName, Mode=TwoWay}"></TextBox>
-            <Button Grid.Column="2" Command="{Binding Path=StartCommand}">Start</Button>
-            <Button Grid.Column="3" Command="{Binding Path=StopCommand}">Stop</Button>
+           
+            <Label Grid.Column="2">Refresh Interval:</Label>
+            <TextBox Grid.Column="3" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Center" TextAlignment="Right" 
+                     >
+                <TextBox.Text>
+                    <Binding Path="Interval" Converter="{StaticResource IntConverter}">
+                        <Binding.ValidationRules>
+                            <validator:MaxIntValidator MaxValue="10000"/>
+                            <validator:MinIntValidator MinValue="1000"/>
+                        </Binding.ValidationRules>
+                    </Binding>
+                </TextBox.Text>
+            </TextBox>
+
+            <Button Grid.Column="4" Command="{Binding Path=StartCommand}">Start</Button>
+            <Button Grid.Column="5" Command="{Binding Path=StopCommand}">Stop</Button>
         </Grid>
 
         <oxy:PlotView Grid.Row="1" Grid.Column="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Model="{Binding Path=PlotModel}" />

@@ -93,9 +93,12 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Converter\IntConverter.cs" />
     <Compile Include="Logic\DumpsysMeminfo.cs" />
     <Compile Include="Logic\DumpsysMemInfoParser.cs" />
     <Compile Include="Properties\Annotations.cs" />
+    <Compile Include="Validator\MinIntValidator.cs" />
+    <Compile Include="Validator\MaxIntValidator.cs" />
     <Compile Include="ViewModel\MainViewModel.cs" />
     <Compile Include="ViewModel\ViewModel.cs" />
     <Compile Include="ViewModel\ViewModelLocator.cs" />

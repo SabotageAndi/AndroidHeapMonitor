@@ -30,6 +30,8 @@ namespace AndroidHeapMonitor.ViewModel
         private LineSeries _series;
         private LinearAxis _timeAxis;
         private LinearAxis _valueAxis;
+        private int _interval;
+        private int _currentX;
 
         public MainViewModel(AndroidDebugBridge bridge)
         {
@@ -72,13 +74,14 @@ namespace AndroidHeapMonitor.ViewModel
                 Title = "Not connected";
             }
 
-            _refreshTimer = new Timer(2500);
+
+            Interval = 2500;
+            _refreshTimer = new Timer(Interval);
             _refreshTimer.AutoReset = false;
             _refreshTimer.Elapsed += _refreshTimer_Elapsed;
             _dumpsysMeminfo = new DumpsysMeminfo(_device);
             _dumpsysMemInfoParser = new DumpsysMemInfoParser();
 
-            
             InitPlotModel();
          
             AddMeminfoHeapColumns("Native Heap", info => info.NativeHeap, true);
@@ -102,6 +105,7 @@ namespace AndroidHeapMonitor.ViewModel
 
             PackageName = "at.oebb.ikt.greenpoints";
         }
+
 
         private void AddMeminfoHeapColumns(string name, Func<DumpsysMemInfo, MeminfoHeap> getMeminfo, bool areHeapColumnsChecked = false)
         {
@@ -169,13 +173,6 @@ namespace AndroidHeapMonitor.ViewModel
             };
 
 
-            var currentX = Items.Count;
-
-            if (_timeAxis.Maximum <= currentX)
-            {
-                _timeAxis.Maximum += _timeAxis.Maximum;
-            }
-
             foreach (var seriesViewModel in AvailableValues)
             {
                 if (seriesViewModel.IsChecked)
@@ -192,9 +189,17 @@ namespace AndroidHeapMonitor.ViewModel
                         _valueAxis.Maximum *= 1.2;
                     }
 
-                    seriesViewModel.Series.Points.Add(new DataPoint(currentX, currentY));
+                    seriesViewModel.Series.Points.Add(new DataPoint(_currentX, currentY));
                 }
             }
+
+
+            _currentX = _currentX + (Interval / 1000);
+            if (_timeAxis.Maximum <= _currentX)
+            {
+                _timeAxis.Maximum += _timeAxis.Maximum;
+            }
+
  
             App.Current.Dispatcher.BeginInvoke(new Action(() =>
             {
@@ -248,6 +253,17 @@ namespace AndroidHeapMonitor.ViewModel
             }
         }
 
+
+        public int Interval
+        {
+            get { return _interval; }
+            set
+            {
+                if (value == _interval) return;
+                _interval = value;
+                OnPropertyChanged();
+            }
+        }
     }
 
     public class SeriesViewModel : ViewModel

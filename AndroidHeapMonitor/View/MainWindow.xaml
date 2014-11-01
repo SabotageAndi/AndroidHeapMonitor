@@ -10,7 +10,7 @@
         xmlns:mvvm="clr-namespace:GalaSoft;assembly=GalaSoft.MvvmLight"
         xmlns:command="http://www.galasoft.ch/mvvmlight"
         d:DataContext="{d:DesignInstance ViewModels:MainViewModel, IsDesignTimeCreatable=False}"
-        Title="{Binding Path=Title, Mode=OneWay}" Height="800" Width="1000" 
+        Title="{Binding Path=Title, Mode=OneWay}" Height="800" Width="1200" 
         >
     <i:Interaction.Triggers>
         <i:EventTrigger EventName="Closed">

@@ -80,35 +80,44 @@ namespace AndroidHeapMonitor.ViewModel
 
             
             InitPlotModel();
-
-            AddSeries(new SeriesViewModel("Native Heap Size", info => info.NativeHeap.HeapSize, true));
-            AddSeries(new SeriesViewModel("Native Heap Free", info => info.NativeHeap.HeapFree, true));
-            AddSeries(new SeriesViewModel("Native Heap Alloc", info => info.NativeHeap.HeapAlloc, true));
-            AddSeries(new SeriesViewModel("Native Heap PSS Total", info => info.NativeHeap.PssTotal));
-            AddSeries(new SeriesViewModel("Native Heap Private Dirty", info => info.NativeHeap.PrivateDirty));
-            AddSeries(new SeriesViewModel("Native Heap Private Clean", info => info.NativeHeap.PrivateClean));
-            
-            AddSeries(new SeriesViewModel("Total Heap Size", info => info.Total.HeapSize));
-            AddSeries(new SeriesViewModel("Total Heap Free", info => info.Total.HeapFree));
-            AddSeries(new SeriesViewModel("Total Heap Alloc", info => info.Total.HeapAlloc));
-            AddSeries(new SeriesViewModel("Total Heap PSS Total", info => info.Total.PssTotal));
-            AddSeries(new SeriesViewModel("Total Heap Private Dirty", info => info.Total.PrivateDirty));
-            AddSeries(new SeriesViewModel("Total Heap Private Clean", info => info.Total.PrivateClean));
-            
-            AddSeries(new SeriesViewModel("Dalvik Heap Size", info => info.DalvikHeap.HeapSize));
-            AddSeries(new SeriesViewModel("Dalvik Heap Free", info => info.DalvikHeap.HeapFree));
-            AddSeries(new SeriesViewModel("Dalvik Heap Alloc", info => info.DalvikHeap.HeapAlloc));
-            AddSeries(new SeriesViewModel("Dalvik Heap PSS Total", info => info.DalvikHeap.PssTotal));
-            AddSeries(new SeriesViewModel("Dalvik Heap Private Dirty", info => info.DalvikHeap.PrivateDirty));
-            AddSeries(new SeriesViewModel("Dalvik Heap Private Clean", info => info.DalvikHeap.PrivateClean));
+         
+            AddMeminfoHeapColumns("Native Heap", info => info.NativeHeap, true);
+            AddMeminfoHeapColumns("Total", info => info.Total);
+            AddMeminfoHeapColumns("Dalvik Heap", info => info.DalvikHeap);
+            AddMemInfoClumns("Dalvik Other", info => info.DalvikOther);
+            AddMemInfoClumns("Stack", info => info.Stack);
+            AddMemInfoClumns("Other dev", info => info.OtherDev);
+            AddMemInfoClumns(".so mmap", info => info.SoMMAP);
+            AddMemInfoClumns(".apk mmap", info => info.ApkMMAP);
+            AddMemInfoClumns(".ttf mmap", info => info.TtfMMAP);
+            AddMemInfoClumns(".dex mmap", info => info.DexMMAP);
+            AddMemInfoClumns("Graphics", info => info.Graphics);
+            AddMemInfoClumns("GL", info => info.GL);
+            AddMemInfoClumns("Unknown", info => info.Unknown);
 
             foreach (var seriesViewModel in AvailableValues)
             {
                 seriesViewModel.CheckedChanged += SeriesViewModelOnCheckedChanged;
             }
 
-
             PackageName = "at.oebb.ikt.greenpoints";
+        }
+
+        private void AddMeminfoHeapColumns(string name, Func<DumpsysMemInfo, MeminfoHeap> getMeminfo, bool areHeapColumnsChecked = false)
+        {
+            AddSeries(new SeriesViewModel(name + " Size", info => getMeminfo(info).HeapSize, areHeapColumnsChecked));
+            AddSeries(new SeriesViewModel(name + " Free", info => getMeminfo(info).HeapFree, areHeapColumnsChecked));
+            AddSeries(new SeriesViewModel(name + " Alloc", info => getMeminfo(info).HeapAlloc, areHeapColumnsChecked));
+
+            AddMemInfoClumns(name, getMeminfo);
+        }
+
+        private void AddMemInfoClumns(string name, Func<DumpsysMemInfo, Meminfo> getMemInfo)
+        {
+            AddSeries(new SeriesViewModel(name + " PSS Total", info => getMemInfo(info).PssTotal));
+            AddSeries(new SeriesViewModel(name + " Private Dirty", info => getMemInfo(info).PrivateDirty));
+            AddSeries(new SeriesViewModel(name + " Swapped Dirty", info => getMemInfo(info).SwappedDirty));
+            AddSeries(new SeriesViewModel(name + " Private Clean", info => getMemInfo(info).PrivateClean));
         }
 
         private void AddSeries(SeriesViewModel seriesViewModel)

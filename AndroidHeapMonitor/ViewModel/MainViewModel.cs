@@ -27,8 +27,9 @@ namespace AndroidHeapMonitor.ViewModel
         private Timer _refreshTimer;
         private DumpsysMeminfo _dumpsysMeminfo;
         private DumpsysMemInfoParser _dumpsysMemInfoParser;
-        private ObservableCollection<DataItemViewModel> _items;
         private LineSeries _series;
+        private LinearAxis _timeAxis;
+        private LinearAxis _valueAxis;
 
         public MainViewModel(AndroidDebugBridge bridge)
         {
@@ -37,6 +38,7 @@ namespace AndroidHeapMonitor.ViewModel
             StartCommand = new RelayCommand(OnStart);
             StopCommand = new RelayCommand(OnStop);
             Items = new ObservableCollection<DataItemViewModel>();
+            AvailableValues = new ObservableCollection<SeriesViewModel>();
         }
 
         private void OnStop()
@@ -76,50 +78,120 @@ namespace AndroidHeapMonitor.ViewModel
             _dumpsysMeminfo = new DumpsysMeminfo(_device);
             _dumpsysMemInfoParser = new DumpsysMemInfoParser();
 
+            
             InitPlotModel();
+
+            AddSeries(new SeriesViewModel("Native Heap Size", info => info.NativeHeap.HeapSize, true));
+            AddSeries(new SeriesViewModel("Native Heap Free", info => info.NativeHeap.HeapFree, true));
+            AddSeries(new SeriesViewModel("Native Heap Alloc", info => info.NativeHeap.HeapAlloc, true));
+            AddSeries(new SeriesViewModel("Native Heap PSS Total", info => info.NativeHeap.PssTotal));
+            AddSeries(new SeriesViewModel("Native Heap Private Dirty", info => info.NativeHeap.PrivateDirty));
+            AddSeries(new SeriesViewModel("Native Heap Private Clean", info => info.NativeHeap.PrivateClean));
+            
+            AddSeries(new SeriesViewModel("Total Heap Size", info => info.Total.HeapSize));
+            AddSeries(new SeriesViewModel("Total Heap Free", info => info.Total.HeapFree));
+            AddSeries(new SeriesViewModel("Total Heap Alloc", info => info.Total.HeapAlloc));
+            AddSeries(new SeriesViewModel("Total Heap PSS Total", info => info.Total.PssTotal));
+            AddSeries(new SeriesViewModel("Total Heap Private Dirty", info => info.Total.PrivateDirty));
+            AddSeries(new SeriesViewModel("Total Heap Private Clean", info => info.Total.PrivateClean));
+            
+            AddSeries(new SeriesViewModel("Dalvik Heap Size", info => info.DalvikHeap.HeapSize));
+            AddSeries(new SeriesViewModel("Dalvik Heap Free", info => info.DalvikHeap.HeapFree));
+            AddSeries(new SeriesViewModel("Dalvik Heap Alloc", info => info.DalvikHeap.HeapAlloc));
+            AddSeries(new SeriesViewModel("Dalvik Heap PSS Total", info => info.DalvikHeap.PssTotal));
+            AddSeries(new SeriesViewModel("Dalvik Heap Private Dirty", info => info.DalvikHeap.PrivateDirty));
+            AddSeries(new SeriesViewModel("Dalvik Heap Private Clean", info => info.DalvikHeap.PrivateClean));
+
+            foreach (var seriesViewModel in AvailableValues)
+            {
+                seriesViewModel.CheckedChanged += SeriesViewModelOnCheckedChanged;
+            }
 
 
             PackageName = "at.oebb.ikt.greenpoints";
         }
 
-        private void InitPlotModel()
+        private void AddSeries(SeriesViewModel seriesViewModel)
         {
-            PlotModel = new PlotModel();
-            PlotModel.Axes.Add(new LinearAxis(AxisPosition.Bottom));
-            PlotModel.Axes.Add(new LinearAxis(AxisPosition.Left, minimum: 0, maximum: 100000));
-
-            _series = new LineSeries("Heap Size") {};
-            PlotModel.Series.Add(_series);
-        }
-
-        public ObservableCollection<DataItemViewModel> Items
-        {
-            get { return _items; }
-            set
+            AvailableValues.Add(seriesViewModel);
+            if (seriesViewModel.IsChecked)
             {
-                if (Equals(value, _items)) return;
-                _items = value;
-                OnPropertyChanged();
+                PlotModel.Series.Add(seriesViewModel.Series);
             }
         }
 
+        private void SeriesViewModelOnCheckedChanged(object sender, EventArgs eventArgs)
+        {
+            var seriesViewModel = (SeriesViewModel)sender;
+
+            if (seriesViewModel.IsChecked)
+            {
+                PlotModel.Series.Add(seriesViewModel.Series);
+            }
+            else
+            {
+                PlotModel.Series.Remove(seriesViewModel.Series);
+            }
+
+            PlotModel.InvalidatePlot(true);
+        }
+
+        private void InitPlotModel()
+        {
+            PlotModel = new PlotModel();
+            _timeAxis = new LinearAxis(AxisPosition.Bottom, minimum:0, maximum:120);
+            _valueAxis = new LinearAxis(AxisPosition.Left);
+            PlotModel.Axes.Add(_timeAxis);
+            PlotModel.Axes.Add(_valueAxis);
+
+        }
+
+       
         void _refreshTimer_Elapsed(object sender, ElapsedEventArgs e)
         {
             var output = _dumpsysMeminfo.GetInfo(PackageName);
 
             var dumpsysMemInfo = _dumpsysMemInfoParser.Parse(output);
 
+            var dataItemViewModel = new DataItemViewModel()
+            {
+                Timestamp = DateTime.Now,
+                MemInfo = dumpsysMemInfo
+            };
+
+
+            var currentX = Items.Count;
+
+            if (_timeAxis.Maximum <= currentX)
+            {
+                _timeAxis.Maximum += _timeAxis.Maximum;
+            }
+
+            foreach (var seriesViewModel in AvailableValues)
+            {
+                if (seriesViewModel.IsChecked)
+                {
+                    double currentY = seriesViewModel.GetValue(dumpsysMemInfo);
+
+                    if (Double.IsNaN(_valueAxis.Maximum))
+                    {
+                        _valueAxis.Maximum = currentY*1.2;
+                    }
+
+                    if (_valueAxis.Maximum <= currentY)
+                    {
+                        _valueAxis.Maximum *= 1.2;
+                    }
+
+                    seriesViewModel.Series.Points.Add(new DataPoint(currentX, currentY));
+                }
+            }
+ 
             App.Current.Dispatcher.BeginInvoke(new Action(() =>
             {
-                Items.Add(new DataItemViewModel()
-                {
-                    Timestamp = DateTime.Now,
-                    MemInfo = dumpsysMemInfo
-                });
-
-                _series.Points.Add(new DataPoint(Items.Count - 1, dumpsysMemInfo.NativeHeap.HeapSize));
-              
-                PlotModel.InvalidatePlot(false);
+                Items.Add(dataItemViewModel);
+                
+                PlotModel.InvalidatePlot(true);
 
                 _refreshTimer.Start();
             }));
@@ -130,6 +202,9 @@ namespace AndroidHeapMonitor.ViewModel
         public ICommand CloseCommand { get; private set; }
         public ICommand StartCommand { get; private set; }
         public ICommand StopCommand { get; private set; }
+        public PlotModel PlotModel { get; set; }
+        public ObservableCollection<SeriesViewModel> AvailableValues { get; set; }
+        public ObservableCollection<DataItemViewModel> Items { get; set; }
 
         public string Title
         {
@@ -164,7 +239,63 @@ namespace AndroidHeapMonitor.ViewModel
             }
         }
 
-        public PlotModel PlotModel { get; set; }
+    }
+
+    public class SeriesViewModel : ViewModel
+    {
+        private string _name;
+        private readonly Func<DumpsysMemInfo, int> _getValue;
+        private bool _isChecked;
+        private readonly LineSeries _series;
+
+        public event EventHandler CheckedChanged;
+
+        protected virtual void OnCheckedChanged()
+        {
+            var handler = CheckedChanged;
+            if (handler != null) handler(this, EventArgs.Empty);
+        }
+
+        public SeriesViewModel(string name, Func<DumpsysMemInfo, int> getValue, bool isChecked = false)
+        {
+            _name = name;
+            IsChecked = isChecked;
+            _getValue = getValue;
+            _series = new LineSeries(_name);
+        }
+
+        public int GetValue(DumpsysMemInfo dumpsysMemInfo)
+        {
+            return _getValue(dumpsysMemInfo);
+        }
+
+        public LineSeries Series
+        {
+            get { return _series; }
+        }
+
+        public string Name
+        {
+            get { return _name; }
+            private set
+            {
+                if (value == _name) return;
+                _name = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public bool IsChecked
+        {
+            get { return _isChecked; }
+            set
+            {
+                if (value.Equals(_isChecked)) return;
+                _isChecked = value;
+                OnPropertyChanged();
+                OnCheckedChanged();
+            }
+        }
     }
 
     public class DataItemViewModel : ViewModel

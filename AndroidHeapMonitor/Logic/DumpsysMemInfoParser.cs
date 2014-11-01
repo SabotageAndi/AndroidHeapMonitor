@@ -6,8 +6,7 @@ using System.Threading.Tasks;
 
 namespace AndroidHeapMonitor.Logic
 {
-
-    class DumpsysMemInfo
+    public class DumpsysMemInfo
     {
         public MeminfoHeap NativeHeap { get; set; }
         public MeminfoHeap DalvikHeap { get; set; }
@@ -25,7 +24,7 @@ namespace AndroidHeapMonitor.Logic
         public Meminfo Unknown { get; set; }
     }
 
-    class Meminfo
+    public class Meminfo
     {
         public int PssTotal { get; set; }
         public int PrivateDirty { get; set; }
@@ -33,7 +32,7 @@ namespace AndroidHeapMonitor.Logic
         public int SwappedDirty { get; set; }
     }
 
-    class MeminfoHeap : Meminfo
+    public class MeminfoHeap : Meminfo
     {
         public int HeapSize { get; set; }
         public int HeapAlloc { get; set; }

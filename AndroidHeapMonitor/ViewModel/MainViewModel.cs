@@ -1,13 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Timers;
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Threading;
 using AndroidHeapMonitor.Logic;
 using GalaSoft.MvvmLight.Command;
 using Managed.Adb;
+using OxyPlot;
+using OxyPlot.Axes;
+using OxyPlot.Series;
 
 namespace AndroidHeapMonitor.ViewModel
 {
@@ -22,6 +27,8 @@ namespace AndroidHeapMonitor.ViewModel
         private Timer _refreshTimer;
         private DumpsysMeminfo _dumpsysMeminfo;
         private DumpsysMemInfoParser _dumpsysMemInfoParser;
+        private ObservableCollection<DataItemViewModel> _items;
+        private LineSeries _series;
 
         public MainViewModel(AndroidDebugBridge bridge)
         {
@@ -29,6 +36,7 @@ namespace AndroidHeapMonitor.ViewModel
             CloseCommand = new RelayCommand(OnClose);
             StartCommand = new RelayCommand(OnStart);
             StopCommand = new RelayCommand(OnStop);
+            Items = new ObservableCollection<DataItemViewModel>();
         }
 
         private void OnStop()
@@ -68,7 +76,31 @@ namespace AndroidHeapMonitor.ViewModel
             _dumpsysMeminfo = new DumpsysMeminfo(_device);
             _dumpsysMemInfoParser = new DumpsysMemInfoParser();
 
+            InitPlotModel();
+
+
             PackageName = "at.oebb.ikt.greenpoints";
+        }
+
+        private void InitPlotModel()
+        {
+            PlotModel = new PlotModel();
+            PlotModel.Axes.Add(new LinearAxis(AxisPosition.Bottom));
+            PlotModel.Axes.Add(new LinearAxis(AxisPosition.Left, minimum: 0, maximum: 100000));
+
+            _series = new LineSeries("Heap Size") {};
+            PlotModel.Series.Add(_series);
+        }
+
+        public ObservableCollection<DataItemViewModel> Items
+        {
+            get { return _items; }
+            set
+            {
+                if (Equals(value, _items)) return;
+                _items = value;
+                OnPropertyChanged();
+            }
         }
 
         void _refreshTimer_Elapsed(object sender, ElapsedEventArgs e)
@@ -77,8 +109,22 @@ namespace AndroidHeapMonitor.ViewModel
 
             var dumpsysMemInfo = _dumpsysMemInfoParser.Parse(output);
 
-            _refreshTimer.Start();
+            App.Current.Dispatcher.BeginInvoke(new Action(() =>
+            {
+                Items.Add(new DataItemViewModel()
+                {
+                    Timestamp = DateTime.Now,
+                    MemInfo = dumpsysMemInfo
+                });
+
+                _series.Points.Add(new DataPoint(Items.Count - 1, dumpsysMemInfo.NativeHeap.HeapSize));
+              
+                PlotModel.InvalidatePlot(false);
+
+                _refreshTimer.Start();
+            }));
         }
+
 
 
         public ICommand CloseCommand { get; private set; }
@@ -118,8 +164,13 @@ namespace AndroidHeapMonitor.ViewModel
             }
         }
 
-
-        
+        public PlotModel PlotModel { get; set; }
     }
 
+    public class DataItemViewModel : ViewModel
+    {
+        public DateTime Timestamp { get; set; }
+
+        public DumpsysMemInfo MemInfo { get; set; }
+    }
 }

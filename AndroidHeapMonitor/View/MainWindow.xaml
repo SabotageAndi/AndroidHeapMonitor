@@ -4,6 +4,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:ViewModels="clr-namespace:AndroidHeapMonitor.ViewModel"
+        xmlns:oxy="clr-namespace:OxyPlot.Wpf;assembly=OxyPlot.Wpf"
         mc:Ignorable="d"
         xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
         xmlns:mvvm="clr-namespace:GalaSoft;assembly=GalaSoft.MvvmLight"
@@ -40,7 +41,8 @@
             <Button Grid.Column="2" Command="{Binding Path=StartCommand}">Start</Button>
             <Button Grid.Column="3" Command="{Binding Path=StopCommand}">Stop</Button>
         </Grid>
-        
-        <TextBox Grid.Row="1" Grid.Column="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Text="{Binding Path=Output}" ></TextBox>
+
+        <oxy:PlotView Grid.Row="1" Grid.Column="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Model="{Binding Path=PlotModel}" />
+
     </Grid>
 </Window>

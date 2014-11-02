@@ -19,11 +19,11 @@ using System.Windows;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("AndroidHeapMonitor")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyTitle("AndroidMemoryMonitor")]
+[assembly: AssemblyDescription("Memory Monitor for Android applications")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("AndroidHeapMonitor")]
+[assembly: AssemblyProduct("AndroidMemoryMonitor")]
 [assembly: AssemblyCopyright("Copyright ©  2014")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]

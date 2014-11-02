@@ -10,6 +10,7 @@
 //
 //You should have received a copy of the GNU General Public License
 //along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
 using System;
 
 #pragma warning disable 1591
@@ -21,7 +22,7 @@ using System;
 // ReSharper disable MemberCanBeProtected.Global
 // ReSharper disable InconsistentNaming
 
-namespace AndroidHeapMonitor.Annotations
+namespace AndroidMemoryMonitor.Properties
 {
   /// <summary>
   /// Indicates that the value of the marked element could be <c>null</c> sometimes,

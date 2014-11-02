@@ -16,11 +16,11 @@ using System.Collections.ObjectModel;
 using System.Timers;
 using System.Windows;
 using System.Windows.Input;
-using AndroidHeapMonitor.Logic;
+using AndroidMemoryMonitor.Logic;
 using GalaSoft.MvvmLight.Command;
 using Managed.Adb;
 
-namespace AndroidHeapMonitor.ViewModel
+namespace AndroidMemoryMonitor.ViewModel
 {
     public class MainViewModel : ViewModel
     {

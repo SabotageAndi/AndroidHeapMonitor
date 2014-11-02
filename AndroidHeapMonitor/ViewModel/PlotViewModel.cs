@@ -10,15 +10,16 @@
 //
 //You should have received a copy of the GNU General Public License
 //along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
 using System;
 using System.Collections.ObjectModel;
 using System.Windows;
-using AndroidHeapMonitor.Logic;
+using AndroidMemoryMonitor.Logic;
 using Managed.Adb;
 using OxyPlot;
 using OxyPlot.Axes;
 
-namespace AndroidHeapMonitor.ViewModel
+namespace AndroidMemoryMonitor.ViewModel
 {
     public class PlotViewModel : ViewModel
     {

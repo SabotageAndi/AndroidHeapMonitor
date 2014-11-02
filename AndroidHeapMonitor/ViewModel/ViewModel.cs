@@ -10,17 +10,12 @@
 //
 //You should have received a copy of the GNU General Public License
 //along with this program.  If not, see <http://www.gnu.org/licenses/>.
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
+
 using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
-using AndroidHeapMonitor.Annotations;
+using AndroidMemoryMonitor.Properties;
 using GalaSoft.MvvmLight;
 
-namespace AndroidHeapMonitor.ViewModel
+namespace AndroidMemoryMonitor.ViewModel
 {
     public class ViewModel : ViewModelBase
     {

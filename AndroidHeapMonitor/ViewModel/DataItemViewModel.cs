@@ -10,10 +10,11 @@
 //
 //You should have received a copy of the GNU General Public License
 //along with this program.  If not, see <http://www.gnu.org/licenses/>.
-using System;
-using AndroidHeapMonitor.Logic;
 
-namespace AndroidHeapMonitor.ViewModel
+using System;
+using AndroidMemoryMonitor.Logic;
+
+namespace AndroidMemoryMonitor.ViewModel
 {
     public class DataItemViewModel : ViewModel
     {

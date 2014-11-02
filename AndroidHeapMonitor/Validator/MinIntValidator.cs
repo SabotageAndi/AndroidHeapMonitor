@@ -10,15 +10,12 @@
 //
 //You should have received a copy of the GNU General Public License
 //along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
 using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Controls;
 
-namespace AndroidHeapMonitor.Validator
+namespace AndroidMemoryMonitor.Validator
 {
     class MinIntValidator : ValidationRule
     {

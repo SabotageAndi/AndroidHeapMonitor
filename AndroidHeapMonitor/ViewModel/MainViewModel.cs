@@ -33,18 +33,18 @@ namespace AndroidHeapMonitor.ViewModel
     {
         private AndroidDebugBridge _bridge;
         private string _title;
-        private Device _device;
         private string _packageName;
         private string _output;
 
         private Timer _refreshTimer;
         private DumpsysMeminfo _dumpsysMeminfo;
         private DumpsysMemInfoParser _dumpsysMemInfoParser;
-        private LineSeries _series;
         private LinearAxis _timeAxis;
         private LinearAxis _valueAxis;
         private int _interval;
         private int _currentX;
+        private Device _selectedDevice;
+        private DumpsysPackages _selectedPackage;
 
         public MainViewModel(AndroidDebugBridge bridge)
         {
@@ -52,8 +52,22 @@ namespace AndroidHeapMonitor.ViewModel
             CloseCommand = new RelayCommand(OnClose);
             StartCommand = new RelayCommand(OnStart);
             StopCommand = new RelayCommand(OnStop);
+            RefreshDevicesCommand = new RelayCommand(OnRefreshDevices);
+
+            Devices = new ObservableCollection<Device>();
             Items = new ObservableCollection<DataItemViewModel>();
             AvailableValues = new ObservableCollection<SeriesViewModel>();
+            Packages = new ObservableCollection<DumpsysPackages>();
+        }
+
+        private void OnRefreshDevices()
+        {
+            SelectedDevice = null;
+            Devices.Clear();
+            foreach (var device in _bridge.Devices)
+            {
+                Devices.Add(device);
+            }
         }
 
         private void OnStop()
@@ -68,31 +82,18 @@ namespace AndroidHeapMonitor.ViewModel
 
         private void OnClose()
         {
-            _device = null;
             _bridge = null;
             Application.Current.Shutdown();
         }
 
         public void Init()
         {
-            var devices = _bridge.Devices;
-            _device = devices.FirstOrDefault();
-
-            if (_device != null)
-            {
-                Title = String.Format("Connected to device: {0}-{1}", _device.Model, _device.SerialNumber);
-            }
-            else
-            {
-                Title = "Not connected";
-            }
-
+            OnRefreshDevices();
 
             Interval = 2500;
             _refreshTimer = new Timer(Interval);
             _refreshTimer.AutoReset = false;
             _refreshTimer.Elapsed += _refreshTimer_Elapsed;
-            _dumpsysMeminfo = new DumpsysMeminfo(_device);
             _dumpsysMemInfoParser = new DumpsysMemInfoParser();
 
             InitPlotModel();
@@ -115,8 +116,6 @@ namespace AndroidHeapMonitor.ViewModel
             {
                 seriesViewModel.CheckedChanged += SeriesViewModelOnCheckedChanged;
             }
-
-            PackageName = "at.oebb.ikt.greenpoints";
         }
 
 
@@ -175,9 +174,9 @@ namespace AndroidHeapMonitor.ViewModel
        
         void _refreshTimer_Elapsed(object sender, ElapsedEventArgs e)
         {
-            var output = _dumpsysMeminfo.GetInfo(PackageName);
+            var output = _dumpsysMeminfo.GetMeminfoOfPackage(SelectedPackage.Name);
 
-            var dumpsysMemInfo = _dumpsysMemInfoParser.Parse(output);
+            var dumpsysMemInfo = _dumpsysMemInfoParser.ParseMeminfo(output);
 
             var dataItemViewModel = new DataItemViewModel()
             {
@@ -229,9 +228,12 @@ namespace AndroidHeapMonitor.ViewModel
         public ICommand CloseCommand { get; private set; }
         public ICommand StartCommand { get; private set; }
         public ICommand StopCommand { get; private set; }
+
+        public ICommand RefreshDevicesCommand { get; private set; }
         public PlotModel PlotModel { get; set; }
         public ObservableCollection<SeriesViewModel> AvailableValues { get; set; }
         public ObservableCollection<DataItemViewModel> Items { get; set; }
+        public ObservableCollection<Device> Devices { get; set; }
 
         public string Title
         {
@@ -240,17 +242,6 @@ namespace AndroidHeapMonitor.ViewModel
             {
                 if (value == _title) return;
                 _title = value;
-                OnPropertyChanged();
-            }
-        }
-
-        public string PackageName
-        {
-            get { return _packageName; }
-            set
-            {
-                if (value == _packageName) return;
-                _packageName = value;
                 OnPropertyChanged();
             }
         }
@@ -266,7 +257,6 @@ namespace AndroidHeapMonitor.ViewModel
             }
         }
 
-
         public int Interval
         {
             get { return _interval; }
@@ -274,6 +264,57 @@ namespace AndroidHeapMonitor.ViewModel
             {
                 if (value == _interval) return;
                 _interval = value;
+                OnPropertyChanged();
+            }
+        }
+
+
+        public Device SelectedDevice
+        {
+            get { return _selectedDevice; }
+            set
+            {
+                _selectedDevice = value;
+                OnPropertyChanged();
+                OnDeviceSelected();
+            }
+        }
+
+        private void OnDeviceSelected()
+        {
+            Packages.Clear();
+                
+            if (_selectedDevice != null)
+            {
+                Title = String.Format("Connected to device: {0}-{1}", _selectedDevice.Model, _selectedDevice.SerialNumber);
+
+                _dumpsysMeminfo = new DumpsysMeminfo(SelectedDevice);
+
+                _dumpsysMemInfoParser.ParsePackages(_dumpsysMeminfo.GetMeminfo()).ForEach(i => Packages.Add(i));
+            }
+            else
+            {
+                Title = "Not connected";
+
+            }
+
+            RaisePropertyChanged(() => DeviceSelected);
+        }
+
+        public bool DeviceSelected
+        {
+            get { return SelectedDevice != null; }
+        }
+
+        public ObservableCollection<DumpsysPackages> Packages { get; set; }
+
+        public DumpsysPackages SelectedPackage
+        {
+            get { return _selectedPackage; }
+            set
+            {
+                if (Equals(value, _selectedPackage)) return;
+                _selectedPackage = value;
                 OnPropertyChanged();
             }
         }

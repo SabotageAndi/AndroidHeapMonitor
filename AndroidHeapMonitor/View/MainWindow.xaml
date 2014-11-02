@@ -41,10 +41,21 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"></RowDefinition>
+            <RowDefinition Height="Auto"></RowDefinition>
             <RowDefinition Height="*"></RowDefinition>
         </Grid.RowDefinitions>
-
+        
         <Grid Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2">
+            <StackPanel Orientation="Horizontal">
+                <Label>Devices:</Label>
+                <ComboBox ItemsSource="{Binding Path=Devices}" DisplayMemberPath="Model"
+                          SelectedItem="{Binding Path=SelectedDevice, Mode=TwoWay}"
+                          Width="200" />
+                <Button Content="Refresh" Command="{Binding Path=RefreshDevicesCommand}"></Button>
+            </StackPanel>
+        </Grid>
+
+        <Grid Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"></ColumnDefinition>
                 <ColumnDefinition Width="*"></ColumnDefinition>
@@ -55,7 +66,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
             </Grid.ColumnDefinitions>
 
             <Label Grid.Column="0">Packagename:</Label>
-            <TextBox Grid.Column="1" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Center" Text="{Binding Path=PackageName, Mode=TwoWay}"></TextBox>
+            <ComboBox Grid.Column="1" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Center" ItemsSource="{Binding Packages}" 
+                      DisplayMemberPath="Name" SelectedItem="{Binding SelectedPackage, Mode=TwoWay}"></ComboBox>
+            <!--<TextBox  Text="{Binding Path=PackageName, Mode=TwoWay}"></TextBox>-->
            
             <Label Grid.Column="2">Refresh Interval:</Label>
             <TextBox Grid.Column="3" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Center" TextAlignment="Right" 
@@ -74,8 +87,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
             <Button Grid.Column="5" Command="{Binding Path=StopCommand}">Stop</Button>
         </Grid>
 
-        <oxy:PlotView Grid.Row="1" Grid.Column="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Model="{Binding Path=PlotModel}" />
-        <ListView Grid.Row="1" Grid.Column="1" ItemsSource="{Binding Path=AvailableValues, Mode=OneWay}">
+        <oxy:PlotView Grid.Row="2" Grid.Column="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Model="{Binding Path=PlotModel}" />
+        <ListView Grid.Row="2" Grid.Column="1" ItemsSource="{Binding Path=AvailableValues, Mode=OneWay}">
             <ListView.ItemTemplate >
                 <DataTemplate d:DataContext="{d:DesignInstance ViewModels:SeriesViewModel, d:IsDesignTimeCreatable=False}">
                     <CheckBox IsChecked="{Binding Path=IsChecked, Mode=TwoWay}" Content="{Binding Path=Name}" ></CheckBox>

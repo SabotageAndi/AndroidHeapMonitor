@@ -51,9 +51,44 @@ namespace AndroidHeapMonitor.Logic
         public int HeapFree { get; set; }
     }
 
+    public class DumpsysPackages
+    {
+        public string Name { get; set; }
+        public int Pid { get; set; }
+    }
+
     class DumpsysMemInfoParser
     {
-        public DumpsysMemInfo Parse(string output)
+        public List<DumpsysPackages> ParsePackages(string output)
+        {
+            var packages = new List<DumpsysPackages>();
+
+             var lines = output.Split(new string[]{Environment.NewLine}, StringSplitOptions.RemoveEmptyEntries);
+
+
+            foreach (var line in lines)
+            {
+                var columns = line.Split(new[] {','}, StringSplitOptions.RemoveEmptyEntries);
+
+                if (columns[0] != "proc")
+                    continue;
+
+                if (columns[1] != "cached")
+                    continue;
+
+                var package = new DumpsysPackages()
+                {
+                    Name = columns[2],
+                    Pid = int.Parse(columns[3]),
+                };
+
+                packages.Add(package);
+            }
+
+            return packages;
+        }
+
+        public DumpsysMemInfo ParseMeminfo(string output)
         {
             var dumpsysMemInfo = new DumpsysMemInfo();
             var lines = output.Split(new string[]{Environment.NewLine}, StringSplitOptions.RemoveEmptyEntries);

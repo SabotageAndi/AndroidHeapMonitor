@@ -28,12 +28,21 @@ namespace AndroidHeapMonitor.Logic
             _device = device;
         }
 
-        public string GetInfo(string packageName)
+        public string GetMeminfoOfPackage(string packageName)
         {
             var commandResultReceiver = new CommandResultReceiver();
             _device.ExecuteShellCommand(string.Format("dumpsys meminfo {0}", packageName), commandResultReceiver );
 
             return commandResultReceiver.Result;
         }
+
+        public string GetMeminfo()
+        {
+            var commandResultReceiver = new CommandResultReceiver();
+            _device.ExecuteShellCommand(string.Format("dumpsys meminfo -c"), commandResultReceiver);
+
+            return commandResultReceiver.Result;
+        }
+
     }
 }

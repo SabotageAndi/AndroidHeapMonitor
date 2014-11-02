@@ -1,0 +1,24 @@
+﻿<UserControl x:Class="AndroidHeapMonitor.View.PlotView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:viewModel="clr-namespace:AndroidHeapMonitor.ViewModel"
+             xmlns:oxy="http://oxyplot.org/wpf"
+             mc:Ignorable="d" 
+             d:DesignHeight="300" d:DesignWidth="300">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"></ColumnDefinition>
+            <ColumnDefinition Width="Auto"></ColumnDefinition>
+        </Grid.ColumnDefinitions>
+        <oxy:PlotView Grid.Column="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Model="{Binding Path=PlotModel}" />
+        <ListView  Grid.Column="1" ItemsSource="{Binding Path=AvailableValues, Mode=OneWay}">
+            <ListView.ItemTemplate >
+                <DataTemplate d:DataContext="{d:DesignInstance viewModel:SeriesViewModel, d:IsDesignTimeCreatable=False}">
+                    <CheckBox IsChecked="{Binding Path=IsChecked, Mode=TwoWay}" Content="{Binding Path=Name}" ></CheckBox>
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
+    </Grid>
+</UserControl>

@@ -85,6 +85,11 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="ViewModel\DataItemViewModel.cs" />
+    <Compile Include="ViewModel\SeriesViewModel.cs" />
+    <Compile Include="View\PlotView.xaml.cs">
+      <DependentUpon>PlotView.xaml</DependentUpon>
+    </Compile>
     <Page Include="View\MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -94,18 +99,23 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Converter\IntConverter.cs" />
-    <Compile Include="Logic\DumpsysMeminfo.cs" />
+    <Compile Include="Logic\Dumpsys.cs" />
     <Compile Include="Logic\DumpsysMemInfoParser.cs" />
     <Compile Include="Properties\Annotations.cs" />
     <Compile Include="Validator\MinIntValidator.cs" />
     <Compile Include="Validator\MaxIntValidator.cs" />
     <Compile Include="ViewModel\MainViewModel.cs" />
+    <Compile Include="ViewModel\PlotViewModel.cs" />
     <Compile Include="ViewModel\ViewModel.cs" />
     <Compile Include="ViewModel\ViewModelLocator.cs" />
     <Compile Include="View\MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Page Include="View\PlotView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs">

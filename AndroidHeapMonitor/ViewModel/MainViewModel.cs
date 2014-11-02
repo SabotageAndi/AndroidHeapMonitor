@@ -25,7 +25,6 @@ using GalaSoft.MvvmLight.Command;
 using Managed.Adb;
 using OxyPlot;
 using OxyPlot.Axes;
-using OxyPlot.Series;
 
 namespace AndroidHeapMonitor.ViewModel
 {
@@ -33,15 +32,11 @@ namespace AndroidHeapMonitor.ViewModel
     {
         private AndroidDebugBridge _bridge;
         private string _title;
-        private string _output;
-
+     
         private Timer _refreshTimer;
-        private DumpsysMeminfo _dumpsysMeminfo;
         private DumpsysMemInfoParser _dumpsysMemInfoParser;
-        private LinearAxis _timeAxis;
-        private LinearAxis _valueAxis;
+     
         private int _interval;
-        private int _currentX;
         private Device _selectedDevice;
         private DumpsysPackages _selectedPackage;
 
@@ -54,9 +49,8 @@ namespace AndroidHeapMonitor.ViewModel
             RefreshDevicesCommand = new RelayCommand(OnRefreshDevices);
             RefreshPackagesCommand = new RelayCommand(OnPackagesRefresh);
 
+            PlotViewModel = new PlotViewModel();
             Devices = new ObservableCollection<Device>();
-            Items = new ObservableCollection<DataItemViewModel>();
-            AvailableValues = new ObservableCollection<SeriesViewModel>();
             Packages = new ObservableCollection<DumpsysPackages>();
         }
 
@@ -96,131 +90,17 @@ namespace AndroidHeapMonitor.ViewModel
             _refreshTimer.Elapsed += _refreshTimer_Elapsed;
             _dumpsysMemInfoParser = new DumpsysMemInfoParser();
 
-            InitPlotModel();
+            PlotViewModel.InitPlotModel();
          
-            AddMeminfoHeapColumns("Native Heap", info => info.NativeHeap, true);
-            AddMeminfoHeapColumns("Total", info => info.Total);
-            AddMeminfoHeapColumns("Dalvik Heap", info => info.DalvikHeap);
-            AddMemInfoClumns("Dalvik Other", info => info.DalvikOther);
-            AddMemInfoClumns("Stack", info => info.Stack);
-            AddMemInfoClumns("Other dev", info => info.OtherDev);
-            AddMemInfoClumns(".so mmap", info => info.SoMMAP);
-            AddMemInfoClumns(".apk mmap", info => info.ApkMMAP);
-            AddMemInfoClumns(".ttf mmap", info => info.TtfMMAP);
-            AddMemInfoClumns(".dex mmap", info => info.DexMMAP);
-            AddMemInfoClumns("Graphics", info => info.Graphics);
-            AddMemInfoClumns("GL", info => info.GL);
-            AddMemInfoClumns("Unknown", info => info.Unknown);
-
-            foreach (var seriesViewModel in AvailableValues)
-            {
-                seriesViewModel.CheckedChanged += SeriesViewModelOnCheckedChanged;
-            }
+          
         }
 
-
-        private void AddMeminfoHeapColumns(string name, Func<DumpsysMemInfo, MeminfoHeap> getMeminfo, bool areHeapColumnsChecked = false)
-        {
-            AddSeries(new SeriesViewModel(name + " Size", info => getMeminfo(info).HeapSize, areHeapColumnsChecked));
-            AddSeries(new SeriesViewModel(name + " Free", info => getMeminfo(info).HeapFree, areHeapColumnsChecked));
-            AddSeries(new SeriesViewModel(name + " Alloc", info => getMeminfo(info).HeapAlloc, areHeapColumnsChecked));
-
-            AddMemInfoClumns(name, getMeminfo);
-        }
-
-        private void AddMemInfoClumns(string name, Func<DumpsysMemInfo, Meminfo> getMemInfo)
-        {
-            AddSeries(new SeriesViewModel(name + " PSS Total", info => getMemInfo(info).PssTotal));
-            AddSeries(new SeriesViewModel(name + " Private Dirty", info => getMemInfo(info).PrivateDirty));
-            AddSeries(new SeriesViewModel(name + " Swapped Dirty", info => getMemInfo(info).SwappedDirty));
-            AddSeries(new SeriesViewModel(name + " Private Clean", info => getMemInfo(info).PrivateClean));
-        }
-
-        private void AddSeries(SeriesViewModel seriesViewModel)
-        {
-            AvailableValues.Add(seriesViewModel);
-            if (seriesViewModel.IsChecked)
-            {
-                PlotModel.Series.Add(seriesViewModel.Series);
-            }
-        }
-
-        private void SeriesViewModelOnCheckedChanged(object sender, EventArgs eventArgs)
-        {
-            var seriesViewModel = (SeriesViewModel)sender;
-
-            if (seriesViewModel.IsChecked)
-            {
-                PlotModel.Series.Add(seriesViewModel.Series);
-            }
-            else
-            {
-                PlotModel.Series.Remove(seriesViewModel.Series);
-            }
-
-            PlotModel.InvalidatePlot(true);
-        }
-
-        private void InitPlotModel()
-        {
-            PlotModel = new PlotModel();
-            _timeAxis = new LinearAxis(AxisPosition.Bottom, minimum:0, maximum:120);
-            _valueAxis = new LinearAxis(AxisPosition.Left);
-            PlotModel.Axes.Add(_timeAxis);
-            PlotModel.Axes.Add(_valueAxis);
-        }
-
-       
         void _refreshTimer_Elapsed(object sender, ElapsedEventArgs e)
         {
-            var output = _dumpsysMeminfo.GetMeminfoOfPackage(SelectedPackage.Name);
+            PlotViewModel.Update();
 
-            var dumpsysMemInfo = _dumpsysMemInfoParser.ParseMeminfo(output);
-
-            var dataItemViewModel = new DataItemViewModel()
-            {
-                Timestamp = DateTime.Now,
-                MemInfo = dumpsysMemInfo
-            };
-
-            foreach (var seriesViewModel in AvailableValues)
-            {
-                if (seriesViewModel.IsChecked)
-                {
-                    double currentY = seriesViewModel.GetValue(dumpsysMemInfo);
-
-                    if (Double.IsNaN(_valueAxis.Maximum))
-                    {
-                        _valueAxis.Maximum = currentY*1.2;
-                    }
-
-                    if (_valueAxis.Maximum <= currentY)
-                    {
-                        _valueAxis.Maximum *= 1.2;
-                    }
-
-                    seriesViewModel.Series.Points.Add(new DataPoint(_currentX, currentY));
-                }
-            }
-
-
-            _currentX = _currentX + (Interval / 1000);
-            if (_timeAxis.Maximum <= _currentX)
-            {
-                _timeAxis.Maximum += _timeAxis.Maximum;
-            }
-
- 
-            App.Current.Dispatcher.BeginInvoke(new Action(() =>
-            {
-                Items.Add(dataItemViewModel);
-                
-                PlotModel.InvalidatePlot(true);
-
-                _refreshTimer.Start();
-            }));
+            _refreshTimer.Start();
         }
-
 
 
         public ICommand CloseCommand { get; private set; }
@@ -228,11 +108,8 @@ namespace AndroidHeapMonitor.ViewModel
         public ICommand StopCommand { get; private set; }
         public ICommand RefreshPackagesCommand { get; set; }
         public ICommand RefreshDevicesCommand { get; private set; }
-        
-        public PlotModel PlotModel { get; set; }
-        
-        public ObservableCollection<SeriesViewModel> AvailableValues { get; set; }
-        public ObservableCollection<DataItemViewModel> Items { get; set; }
+
+        public PlotViewModel PlotViewModel { get; set; }        
         public ObservableCollection<Device> Devices { get; set; }
 
         public string Title
@@ -245,18 +122,7 @@ namespace AndroidHeapMonitor.ViewModel
                 OnPropertyChanged();
             }
         }
-
-        public string Output
-        {
-            get { return _output; }
-            set
-            {
-                if (value == _output) return;
-                _output = value;
-                OnPropertyChanged();
-            }
-        }
-
+     
         public int Interval
         {
             get { return _interval; }
@@ -265,6 +131,7 @@ namespace AndroidHeapMonitor.ViewModel
                 if (value == _interval) return;
                 _interval = value;
                 OnPropertyChanged();
+                PlotViewModel.Interval = _interval;
             }
         }
 
@@ -277,6 +144,7 @@ namespace AndroidHeapMonitor.ViewModel
                 _selectedDevice = value;
                 OnPropertyChanged();
                 OnDeviceSelected();
+                PlotViewModel.SelectedDevice = _selectedDevice;
                 RaisePropertyChanged(() => DeviceSelected);
             }
         }
@@ -286,8 +154,6 @@ namespace AndroidHeapMonitor.ViewModel
             if (_selectedDevice != null)
             {
                 Title = String.Format("Connected to device: {0}-{1}", _selectedDevice.Model, _selectedDevice.SerialNumber);
-
-                _dumpsysMeminfo = new DumpsysMeminfo(SelectedDevice);
 
                 OnPackagesRefresh();
             }
@@ -303,7 +169,7 @@ namespace AndroidHeapMonitor.ViewModel
         {
             SelectedPackage = null;
             Packages.Clear();
-            _dumpsysMemInfoParser.ParsePackages(_dumpsysMeminfo.GetMeminfo()).ForEach(i => Packages.Add(i));
+            _dumpsysMemInfoParser.ParsePackages(Dumpsys.GetMeminfo(SelectedDevice)).ForEach(i => Packages.Add(i));
         }
 
         public bool DeviceSelected
@@ -326,73 +192,10 @@ namespace AndroidHeapMonitor.ViewModel
                 if (Equals(value, _selectedPackage)) return;
                 _selectedPackage = value;
                 OnPropertyChanged();
+                PlotViewModel.SelectedPackage = _selectedPackage;
                 RaisePropertyChanged(() => PackageSelected);
             }
         }
 
-    }
-
-    public class SeriesViewModel : ViewModel
-    {
-        private string _name;
-        private readonly Func<DumpsysMemInfo, int> _getValue;
-        private bool _isChecked;
-        private readonly LineSeries _series;
-
-        public event EventHandler CheckedChanged;
-
-        protected virtual void OnCheckedChanged()
-        {
-            var handler = CheckedChanged;
-            if (handler != null) handler(this, EventArgs.Empty);
-        }
-
-        public SeriesViewModel(string name, Func<DumpsysMemInfo, int> getValue, bool isChecked = false)
-        {
-            _name = name;
-            IsChecked = isChecked;
-            _getValue = getValue;
-            _series = new LineSeries(_name);
-        }
-
-        public int GetValue(DumpsysMemInfo dumpsysMemInfo)
-        {
-            return _getValue(dumpsysMemInfo);
-        }
-
-        public LineSeries Series
-        {
-            get { return _series; }
-        }
-
-        public string Name
-        {
-            get { return _name; }
-            private set
-            {
-                if (value == _name) return;
-                _name = value;
-                OnPropertyChanged();
-            }
-        }
-
-        public bool IsChecked
-        {
-            get { return _isChecked; }
-            set
-            {
-                if (value.Equals(_isChecked)) return;
-                _isChecked = value;
-                OnPropertyChanged();
-                OnCheckedChanged();
-            }
-        }
-    }
-
-    public class DataItemViewModel : ViewModel
-    {
-        public DateTime Timestamp { get; set; }
-
-        public DumpsysMemInfo MemInfo { get; set; }
     }
 }

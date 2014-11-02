@@ -19,27 +19,21 @@ using Managed.Adb;
 
 namespace AndroidHeapMonitor.Logic
 {
-    class DumpsysMeminfo
+    class Dumpsys
     {
-        private readonly Device _device;
 
-        public DumpsysMeminfo(Device device)
-        {
-            _device = device;
-        }
-
-        public string GetMeminfoOfPackage(string packageName)
+        public static string GetMeminfoOfPackage(Device device, string packageName)
         {
             var commandResultReceiver = new CommandResultReceiver();
-            _device.ExecuteShellCommand(string.Format("dumpsys meminfo {0}", packageName), commandResultReceiver );
+            device.ExecuteShellCommand(string.Format("dumpsys meminfo {0}", packageName), commandResultReceiver );
 
             return commandResultReceiver.Result;
         }
 
-        public string GetMeminfo()
+        public static string GetMeminfo(Device device)
         {
             var commandResultReceiver = new CommandResultReceiver();
-            _device.ExecuteShellCommand(string.Format("dumpsys meminfo -c"), commandResultReceiver);
+            device.ExecuteShellCommand(string.Format("dumpsys meminfo -c"), commandResultReceiver);
 
             return commandResultReceiver.Result;
         }

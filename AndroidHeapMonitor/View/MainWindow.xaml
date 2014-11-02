@@ -24,6 +24,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
         xmlns:mvvm="clr-namespace:GalaSoft;assembly=GalaSoft.MvvmLight"
         xmlns:command="http://www.galasoft.ch/mvvmlight"
         xmlns:validator="clr-namespace:AndroidHeapMonitor.Validator"
+        xmlns:view="clr-namespace:AndroidHeapMonitor.View"
         d:DataContext="{d:DesignInstance ViewModels:MainViewModel, IsDesignTimeCreatable=False}"
         Title="{Binding Path=Title, Mode=OneWay}" Height="800" Width="1200" 
         >
@@ -37,7 +38,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*"></ColumnDefinition>
-            <ColumnDefinition Width="Auto"></ColumnDefinition>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"></RowDefinition>
@@ -45,7 +45,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
             <RowDefinition Height="*"></RowDefinition>
         </Grid.RowDefinitions>
         
-        <Grid Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2">
+        <Grid Grid.Row="0" Grid.Column="0" >
             <StackPanel Orientation="Horizontal">
                 <Label>Devices:</Label>
                 <ComboBox ItemsSource="{Binding Path=Devices}" DisplayMemberPath="Model"
@@ -55,7 +55,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
             </StackPanel>
         </Grid>
 
-        <Grid Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2">
+        <Grid Grid.Row="1" Grid.Column="0" >
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"></ColumnDefinition>
                 <ColumnDefinition Width="*"></ColumnDefinition>
@@ -91,13 +91,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
             <Button Grid.Column="6" Command="{Binding Path=StopCommand}" IsEnabled="{Binding PackageSelected}">Stop</Button>
         </Grid>
 
-        <oxy:PlotView Grid.Row="2" Grid.Column="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Model="{Binding Path=PlotModel}" />
-        <ListView Grid.Row="2" Grid.Column="1" ItemsSource="{Binding Path=AvailableValues, Mode=OneWay}">
-            <ListView.ItemTemplate >
-                <DataTemplate d:DataContext="{d:DesignInstance ViewModels:SeriesViewModel, d:IsDesignTimeCreatable=False}">
-                    <CheckBox IsChecked="{Binding Path=IsChecked, Mode=TwoWay}" Content="{Binding Path=Name}" ></CheckBox>
-                </DataTemplate>
-            </ListView.ItemTemplate>
-        </ListView>
+        
+        <view:PlotView Grid.Row="2" DataContext="{Binding Path=PlotViewModel}"></view:PlotView>
     </Grid>
 </Window>

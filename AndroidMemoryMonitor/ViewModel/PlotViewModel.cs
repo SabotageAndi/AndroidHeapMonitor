@@ -27,6 +27,8 @@ namespace AndroidMemoryMonitor.ViewModel
         private int _currentX;
         private LinearAxis _timeAxis;
         private LinearAxis _valueAxis;
+        private DumpsysPackages _selectedPackage;
+        private Device _selectedDevice;
 
         public PlotViewModel()
         {
@@ -40,11 +42,24 @@ namespace AndroidMemoryMonitor.ViewModel
 
         public ObservableCollection<SeriesViewModel> AvailableValues { get; set; }
         public ObservableCollection<DataItemViewModel> Items { get; set; }
-        public Device SelectedDevice { get; set; }
+
+        public Device SelectedDevice
+        {
+            get { return _selectedDevice; }
+            set { _selectedDevice = value; }
+        }
+
+        public DumpsysPackages SelectedPackage
+        {
+            get { return _selectedPackage; }
+            set
+            {
+                _selectedPackage = value; 
+            }
+        }
 
         public int Interval { get; set; }
 
-        public DumpsysPackages SelectedPackage { get; set; }
 
         public void InitPlotModel()
         {
@@ -120,6 +135,13 @@ namespace AndroidMemoryMonitor.ViewModel
 
         public void Update()
         {
+            if (SelectedDevice == null)
+                return;
+
+            if (SelectedPackage == null)
+                return;
+            
+
             string output = Dumpsys.GetMeminfoOfPackage(SelectedDevice, SelectedPackage.Name);
 
             DumpsysMemInfo dumpsysMemInfo = _dumpsysMemInfoParser.ParseMeminfo(output);

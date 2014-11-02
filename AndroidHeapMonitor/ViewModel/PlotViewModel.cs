@@ -1,9 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
+﻿//This program is free software: you can redistribute it and/or modify
+//it under the terms of the GNU General Public License as published by
+//the Free Software Foundation, either version 3 of the License, or
+//(at your option) any later version.
+//
+//This program is distributed in the hope that it will be useful,
+//but WITHOUT ANY WARRANTY; without even the implied warranty of
+//MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//GNU General Public License for more details.
+//
+//You should have received a copy of the GNU General Public License
+//along with this program.  If not, see <http://www.gnu.org/licenses/>.
+using System;
 using System.Collections.ObjectModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Windows;
 using AndroidHeapMonitor.Logic;
 using Managed.Adb;
 using OxyPlot;
@@ -13,16 +22,10 @@ namespace AndroidHeapMonitor.ViewModel
 {
     public class PlotViewModel : ViewModel
     {
-        public PlotModel PlotModel { get; set; }
-
+        private readonly DumpsysMemInfoParser _dumpsysMemInfoParser;
+        private int _currentX;
         private LinearAxis _timeAxis;
         private LinearAxis _valueAxis;
-        private int _currentX;
-        private readonly DumpsysMemInfoParser _dumpsysMemInfoParser;
-
-
-        public ObservableCollection<SeriesViewModel> AvailableValues { get; set; }
-        public ObservableCollection<DataItemViewModel> Items { get; set; }
 
         public PlotViewModel()
         {
@@ -31,10 +34,21 @@ namespace AndroidHeapMonitor.ViewModel
             _dumpsysMemInfoParser = new DumpsysMemInfoParser();
         }
 
+        public PlotModel PlotModel { get; set; }
+
+
+        public ObservableCollection<SeriesViewModel> AvailableValues { get; set; }
+        public ObservableCollection<DataItemViewModel> Items { get; set; }
+        public Device SelectedDevice { get; set; }
+
+        public int Interval { get; set; }
+
+        public DumpsysPackages SelectedPackage { get; set; }
+
         public void InitPlotModel()
         {
             PlotModel = new PlotModel();
-            _timeAxis = new LinearAxis(AxisPosition.Bottom, minimum: 0, maximum: 120);
+            _timeAxis = new LinearAxis(AxisPosition.Bottom, 0, 120);
             _valueAxis = new LinearAxis(AxisPosition.Left);
             PlotModel.Axes.Add(_timeAxis);
             PlotModel.Axes.Add(_valueAxis);
@@ -53,13 +67,14 @@ namespace AndroidHeapMonitor.ViewModel
             AddMemInfoClumns("GL", info => info.GL);
             AddMemInfoClumns("Unknown", info => info.Unknown);
 
-            foreach (var seriesViewModel in AvailableValues)
+            foreach (SeriesViewModel seriesViewModel in AvailableValues)
             {
                 seriesViewModel.CheckedChanged += SeriesViewModelOnCheckedChanged;
             }
         }
 
-        private void AddMeminfoHeapColumns(string name, Func<DumpsysMemInfo, MeminfoHeap> getMeminfo, bool areHeapColumnsChecked = false)
+        private void AddMeminfoHeapColumns(string name, Func<DumpsysMemInfo, MeminfoHeap> getMeminfo,
+            bool areHeapColumnsChecked = false)
         {
             AddSeries(new SeriesViewModel(name + " Size", info => getMeminfo(info).HeapSize, areHeapColumnsChecked));
             AddSeries(new SeriesViewModel(name + " Free", info => getMeminfo(info).HeapFree, areHeapColumnsChecked));
@@ -87,7 +102,7 @@ namespace AndroidHeapMonitor.ViewModel
 
         private void SeriesViewModelOnCheckedChanged(object sender, EventArgs eventArgs)
         {
-            var seriesViewModel = (SeriesViewModel)sender;
+            var seriesViewModel = (SeriesViewModel) sender;
 
             if (seriesViewModel.IsChecked)
             {
@@ -104,17 +119,17 @@ namespace AndroidHeapMonitor.ViewModel
 
         public void Update()
         {
-            var output = Dumpsys.GetMeminfoOfPackage(SelectedDevice, SelectedPackage.Name);
+            string output = Dumpsys.GetMeminfoOfPackage(SelectedDevice, SelectedPackage.Name);
 
-            var dumpsysMemInfo = _dumpsysMemInfoParser.ParseMeminfo(output);
+            DumpsysMemInfo dumpsysMemInfo = _dumpsysMemInfoParser.ParseMeminfo(output);
 
-            var dataItemViewModel = new DataItemViewModel()
+            var dataItemViewModel = new DataItemViewModel
             {
                 Timestamp = DateTime.Now,
                 MemInfo = dumpsysMemInfo
             };
 
-            foreach (var seriesViewModel in AvailableValues)
+            foreach (SeriesViewModel seriesViewModel in AvailableValues)
             {
                 if (seriesViewModel.IsChecked)
                 {
@@ -122,7 +137,7 @@ namespace AndroidHeapMonitor.ViewModel
 
                     if (Double.IsNaN(_valueAxis.Maximum))
                     {
-                        _valueAxis.Maximum = currentY * 1.2;
+                        _valueAxis.Maximum = currentY*1.2;
                     }
 
                     if (_valueAxis.Maximum <= currentY)
@@ -135,26 +150,19 @@ namespace AndroidHeapMonitor.ViewModel
             }
 
 
-            _currentX = _currentX + (Interval / 1000);
+            _currentX = _currentX + (Interval/1000);
             if (_timeAxis.Maximum <= _currentX)
             {
                 _timeAxis.Maximum += _timeAxis.Maximum;
             }
 
 
-            App.Current.Dispatcher.BeginInvoke(new Action(() =>
+            Application.Current.Dispatcher.BeginInvoke(new Action(() =>
             {
                 Items.Add(dataItemViewModel);
 
                 PlotModel.InvalidatePlot(true);
-
             }));
         }
-
-        public Device SelectedDevice { get; set; }
-
-        public int Interval { get; set; }
-
-        public DumpsysPackages SelectedPackage { get; set; }
     }
 }

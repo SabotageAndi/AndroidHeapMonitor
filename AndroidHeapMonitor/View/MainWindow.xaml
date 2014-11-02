@@ -60,18 +60,22 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                 <ColumnDefinition Width="Auto"></ColumnDefinition>
                 <ColumnDefinition Width="*"></ColumnDefinition>
                 <ColumnDefinition Width="Auto"></ColumnDefinition>
+                <ColumnDefinition Width="Auto"></ColumnDefinition>
                 <ColumnDefinition Width="75"></ColumnDefinition>
-                <ColumnDefinition Width="Auto"></ColumnDefinition>
-                <ColumnDefinition Width="Auto"></ColumnDefinition>
+                <ColumnDefinition Width="50"></ColumnDefinition>
+                <ColumnDefinition Width="50"></ColumnDefinition>
             </Grid.ColumnDefinitions>
 
             <Label Grid.Column="0">Packagename:</Label>
             <ComboBox Grid.Column="1" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Center" ItemsSource="{Binding Packages}" 
-                      DisplayMemberPath="Name" SelectedItem="{Binding SelectedPackage, Mode=TwoWay}"></ComboBox>
-            <!--<TextBox  Text="{Binding Path=PackageName, Mode=TwoWay}"></TextBox>-->
-           
-            <Label Grid.Column="2">Refresh Interval:</Label>
-            <TextBox Grid.Column="3" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Center" TextAlignment="Right" 
+                      DisplayMemberPath="Name" SelectedItem="{Binding SelectedPackage, Mode=TwoWay}"
+                      IsEnabled="{Binding Path=DeviceSelected}" />
+
+            <Button Grid.Column="2" Content="Refresh" Command="{Binding Path=RefreshPackagesCommand}"
+                    IsEnabled="{Binding Path=DeviceSelected}" />
+
+            <Label Grid.Column="3">Refresh Interval:</Label>
+            <TextBox Grid.Column="4" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Center" TextAlignment="Right" 
                      >
                 <TextBox.Text>
                     <Binding Path="Interval" Converter="{StaticResource IntConverter}">
@@ -83,8 +87,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                 </TextBox.Text>
             </TextBox>
 
-            <Button Grid.Column="4" Command="{Binding Path=StartCommand}">Start</Button>
-            <Button Grid.Column="5" Command="{Binding Path=StopCommand}">Stop</Button>
+            <Button Grid.Column="5" Command="{Binding Path=StartCommand}" IsEnabled="{Binding PackageSelected}">Start</Button>
+            <Button Grid.Column="6" Command="{Binding Path=StopCommand}" IsEnabled="{Binding PackageSelected}">Stop</Button>
         </Grid>
 
         <oxy:PlotView Grid.Row="2" Grid.Column="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Model="{Binding Path=PlotModel}" />

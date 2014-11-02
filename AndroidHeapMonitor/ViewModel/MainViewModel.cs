@@ -33,7 +33,6 @@ namespace AndroidHeapMonitor.ViewModel
     {
         private AndroidDebugBridge _bridge;
         private string _title;
-        private string _packageName;
         private string _output;
 
         private Timer _refreshTimer;
@@ -53,6 +52,7 @@ namespace AndroidHeapMonitor.ViewModel
             StartCommand = new RelayCommand(OnStart);
             StopCommand = new RelayCommand(OnStop);
             RefreshDevicesCommand = new RelayCommand(OnRefreshDevices);
+            RefreshPackagesCommand = new RelayCommand(OnPackagesRefresh);
 
             Devices = new ObservableCollection<Device>();
             Items = new ObservableCollection<DataItemViewModel>();
@@ -168,7 +168,6 @@ namespace AndroidHeapMonitor.ViewModel
             _valueAxis = new LinearAxis(AxisPosition.Left);
             PlotModel.Axes.Add(_timeAxis);
             PlotModel.Axes.Add(_valueAxis);
-
         }
 
        
@@ -183,7 +182,6 @@ namespace AndroidHeapMonitor.ViewModel
                 Timestamp = DateTime.Now,
                 MemInfo = dumpsysMemInfo
             };
-
 
             foreach (var seriesViewModel in AvailableValues)
             {
@@ -228,9 +226,11 @@ namespace AndroidHeapMonitor.ViewModel
         public ICommand CloseCommand { get; private set; }
         public ICommand StartCommand { get; private set; }
         public ICommand StopCommand { get; private set; }
-
+        public ICommand RefreshPackagesCommand { get; set; }
         public ICommand RefreshDevicesCommand { get; private set; }
+        
         public PlotModel PlotModel { get; set; }
+        
         public ObservableCollection<SeriesViewModel> AvailableValues { get; set; }
         public ObservableCollection<DataItemViewModel> Items { get; set; }
         public ObservableCollection<Device> Devices { get; set; }
@@ -277,33 +277,43 @@ namespace AndroidHeapMonitor.ViewModel
                 _selectedDevice = value;
                 OnPropertyChanged();
                 OnDeviceSelected();
+                RaisePropertyChanged(() => DeviceSelected);
             }
         }
 
         private void OnDeviceSelected()
         {
-            Packages.Clear();
-                
             if (_selectedDevice != null)
             {
                 Title = String.Format("Connected to device: {0}-{1}", _selectedDevice.Model, _selectedDevice.SerialNumber);
 
                 _dumpsysMeminfo = new DumpsysMeminfo(SelectedDevice);
 
-                _dumpsysMemInfoParser.ParsePackages(_dumpsysMeminfo.GetMeminfo()).ForEach(i => Packages.Add(i));
+                OnPackagesRefresh();
             }
             else
             {
                 Title = "Not connected";
-
+                Packages.Clear();
             }
 
-            RaisePropertyChanged(() => DeviceSelected);
+        }
+
+        private void OnPackagesRefresh()
+        {
+            SelectedPackage = null;
+            Packages.Clear();
+            _dumpsysMemInfoParser.ParsePackages(_dumpsysMeminfo.GetMeminfo()).ForEach(i => Packages.Add(i));
         }
 
         public bool DeviceSelected
         {
             get { return SelectedDevice != null; }
+        }
+
+        public bool PackageSelected
+        {
+            get { return SelectedPackage != null; }
         }
 
         public ObservableCollection<DumpsysPackages> Packages { get; set; }
@@ -316,8 +326,10 @@ namespace AndroidHeapMonitor.ViewModel
                 if (Equals(value, _selectedPackage)) return;
                 _selectedPackage = value;
                 OnPropertyChanged();
+                RaisePropertyChanged(() => PackageSelected);
             }
         }
+
     }
 
     public class SeriesViewModel : ViewModel

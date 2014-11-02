@@ -15,6 +15,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Controls;
 
 namespace AndroidHeapMonitor.Logic
 {
@@ -84,6 +85,8 @@ namespace AndroidHeapMonitor.Logic
 
                 packages.Add(package);
             }
+
+            packages = packages.OrderBy(i => i.Name).ToList();
 
             return packages;
         }

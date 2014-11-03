@@ -19,6 +19,24 @@ namespace AndroidMemoryMonitor.Logic
 {
     public class DumpsysMemInfo
     {
+        public DumpsysMemInfo()
+        {
+            NativeHeap = new MeminfoHeap();
+            DalvikHeap = new MeminfoHeap();
+            Total = new MeminfoHeap();
+            DalvikOther = new Meminfo();
+            Stack = new Meminfo();
+            OtherDev = new Meminfo();
+            SoMMAP = new Meminfo();
+            ApkMMAP = new Meminfo();
+            TtfMMAP = new Meminfo();
+            DexMMAP = new Meminfo();
+            OtherMMAP = new Meminfo();
+            Graphics = new Meminfo();
+            GL = new Meminfo();
+            Unknown = new Meminfo();
+        }
+
         public MeminfoHeap NativeHeap { get; set; }
         public MeminfoHeap DalvikHeap { get; set; }
         public MeminfoHeap Total { get; set; }

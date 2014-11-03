@@ -12,23 +12,50 @@
 //along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Windows;
+using System.Windows.Documents;
 using AndroidMemoryMonitor.View;
 using AndroidMemoryMonitor.ViewModel;
 using Managed.Adb;
 
 namespace AndroidMemoryMonitor
 {
+
     /// <summary>
     /// Interaction logic for App.xaml
     /// </summary>
     public partial class App : Application
     {
+        private List<String> _knownAdbLocations = new List<string>()
+                                                  {
+                                                      @"C:\android\platform-tools\adb.exe",
+                                                      @"D:\android\platform-tools\adb.exe",
+                                                  };
+
         private AndroidDebugBridge _bridge;
 
         private void App_OnStartup(object sender, StartupEventArgs e)
         {
-            _bridge = StartBridge(@"C:\android\platform-tools\adb.exe");
+            string adbLocation = null;
+
+            foreach (var knownAdbLocation in _knownAdbLocations)
+            {
+                if (File.Exists(knownAdbLocation))
+                {
+                    adbLocation = knownAdbLocation;
+                    break;
+                }
+            }
+
+            if (String.IsNullOrEmpty(adbLocation))
+            {
+                MessageBox.Show("ADB not found");
+                return;
+            }
+
+            _bridge = StartBridge(adbLocation);
     
 
             var mainWindow = new MainWindow();

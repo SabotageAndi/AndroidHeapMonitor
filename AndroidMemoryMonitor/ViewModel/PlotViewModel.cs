@@ -18,6 +18,7 @@ using AndroidMemoryMonitor.Logic;
 using Managed.Adb;
 using OxyPlot;
 using OxyPlot.Axes;
+using OxyPlot.Series;
 
 namespace AndroidMemoryMonitor.ViewModel
 {
@@ -186,6 +187,20 @@ namespace AndroidMemoryMonitor.ViewModel
 
                 PlotModel.InvalidatePlot(true);
             }));
+        }
+
+        public void Clear()
+        {
+            Items.Clear();
+            _currentX = 0;
+
+            foreach (var series1 in PlotModel.Series)
+            {
+                var series = (LineSeries) series1;
+                series.Points.Clear();
+            }
+
+            PlotModel.InvalidatePlot(true);
         }
     }
 }

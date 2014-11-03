@@ -24,7 +24,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
         xmlns:command="http://www.galasoft.ch/mvvmlight"
         xmlns:validator="clr-namespace:AndroidMemoryMonitor.Validator"
         xmlns:view="clr-namespace:AndroidMemoryMonitor.View"
-        d:DataContext="{d:DesignInstance ViewModels:MainViewModel, IsDesignTimeCreatable=False}"
+        xmlns:viewModel="clr-namespace:AndroidMemoryMonitor.ViewModel"
+        d:DataContext="{d:DesignInstance viewModel:MainViewModel, IsDesignTimeCreatable=False}"
         Title="{Binding Path=Title, Mode=OneWay}" Height="800" Width="1200" 
         >
     <i:Interaction.Triggers>
@@ -63,6 +64,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                 <ColumnDefinition Width="75"></ColumnDefinition>
                 <ColumnDefinition Width="50"></ColumnDefinition>
                 <ColumnDefinition Width="50"></ColumnDefinition>
+                <ColumnDefinition Width="50"></ColumnDefinition>
             </Grid.ColumnDefinitions>
 
             <Label Grid.Column="0">Packagename:</Label>
@@ -88,6 +90,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
             <Button Grid.Column="5" Command="{Binding Path=StartCommand}" IsEnabled="{Binding PackageSelected}">Start</Button>
             <Button Grid.Column="6" Command="{Binding Path=StopCommand}" IsEnabled="{Binding PackageSelected}">Stop</Button>
+            <Button Grid.Column="7" Command="{Binding Path=ClearCommand}" IsEnabled="{Binding PackageSelected}">Clear</Button>
         </Grid>
 
         

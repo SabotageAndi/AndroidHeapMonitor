@@ -41,18 +41,21 @@ namespace AndroidMemoryMonitor.ViewModel
             StopCommand = new RelayCommand(OnStop);
             RefreshDevicesCommand = new RelayCommand(OnRefreshDevices);
             RefreshPackagesCommand = new RelayCommand(OnPackagesRefresh);
+            ClearCommand = new RelayCommand(OnClear);
 
             PlotViewModel = new PlotViewModel();
             Devices = new ObservableCollection<Device>();
             Packages = new ObservableCollection<DumpsysPackages>();
         }
 
+        
 
         public ICommand CloseCommand { get; private set; }
         public ICommand StartCommand { get; private set; }
         public ICommand StopCommand { get; private set; }
         public ICommand RefreshPackagesCommand { get; set; }
         public ICommand RefreshDevicesCommand { get; private set; }
+        public ICommand ClearCommand { get; private set; }
 
         public PlotViewModel PlotViewModel { get; set; }
         public ObservableCollection<Device> Devices { get; set; }
@@ -118,6 +121,8 @@ namespace AndroidMemoryMonitor.ViewModel
                 RaisePropertyChanged(() => PackageSelected);
             }
         }
+
+        
 
 
         private void OnRefreshDevices()
@@ -189,6 +194,10 @@ namespace AndroidMemoryMonitor.ViewModel
             _dumpsysMemInfoParser.ParsePackages(Dumpsys.GetMeminfo(SelectedDevice)).ForEach(i => Packages.Add(i));
         }
 
-    
+        private void OnClear()
+        {
+            PlotViewModel.Clear();
+        }
+
     }
 }

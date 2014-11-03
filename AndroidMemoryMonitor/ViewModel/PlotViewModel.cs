@@ -70,9 +70,9 @@ namespace AndroidMemoryMonitor.ViewModel
             PlotModel.Axes.Add(_timeAxis);
             PlotModel.Axes.Add(_valueAxis);
 
-            AddMeminfoHeapColumns("Native Heap", info => info.NativeHeap, true);
-            AddMeminfoHeapColumns("Total", info => info.Total);
-            AddMeminfoHeapColumns("Dalvik Heap", info => info.DalvikHeap);
+            AddMeminfoHeapColumns("Native Heap", info => info.NativeHeap);
+            AddMeminfoHeapColumns("Total", info => info.Total, true);
+            AddMeminfoHeapColumns("Dalvik Heap", info => info.DalvikHeap, true);
             AddMemInfoClumns("Dalvik Other", info => info.DalvikOther);
             AddMemInfoClumns("Stack", info => info.Stack);
             AddMemInfoClumns("Other dev", info => info.OtherDev);
@@ -93,9 +93,9 @@ namespace AndroidMemoryMonitor.ViewModel
         private void AddMeminfoHeapColumns(string name, Func<DumpsysMemInfo, MeminfoHeap> getMeminfo,
             bool areHeapColumnsChecked = false)
         {
-            AddSeries(new SeriesViewModel(name + " Size", info => getMeminfo(info).HeapSize, areHeapColumnsChecked));
-            AddSeries(new SeriesViewModel(name + " Free", info => getMeminfo(info).HeapFree, areHeapColumnsChecked));
-            AddSeries(new SeriesViewModel(name + " Alloc", info => getMeminfo(info).HeapAlloc, areHeapColumnsChecked));
+            AddSeries(new SeriesViewModel(name + " Heap Size", info => getMeminfo(info).HeapSize, areHeapColumnsChecked));
+            AddSeries(new SeriesViewModel(name + " Heap Free", info => getMeminfo(info).HeapFree));
+            AddSeries(new SeriesViewModel(name + " Heap Alloc", info => getMeminfo(info).HeapAlloc, areHeapColumnsChecked));
 
             AddMemInfoClumns(name, getMeminfo);
         }

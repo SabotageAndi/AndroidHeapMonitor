@@ -215,7 +215,7 @@ namespace AndroidMemoryMonitor.Logic
             Meminfo meminfo;
 
             if (meminfoName.Contains("Native") ||
-                meminfoName.Contains("Dalvik"))
+                (meminfoName.Contains("Dalvik") && !meminfoName.Contains("Other")))
             {
                 meminfo = ParseMeminfoHeap(dataColumns);
                 if (!(meminfoName.Contains("Heap")))

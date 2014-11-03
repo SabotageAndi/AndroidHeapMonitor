@@ -62,7 +62,42 @@ namespace AndroidMemoryMonitor.Logic
         {
             var packages = new List<DumpsysPackages>();
 
-             var lines = output.Split(new string[]{Environment.NewLine}, StringSplitOptions.RemoveEmptyEntries);
+            var lines = output.Split(new string[] {Environment.NewLine}, StringSplitOptions.RemoveEmptyEntries);
+
+
+            foreach (var line in lines)
+            {
+                if (!line.Contains("kB:"))
+                    continue;
+
+                var columns = line.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+
+                if (columns.Length < 5)
+                    continue;
+                
+
+                var package = new DumpsysPackages()
+                {
+                    Name = columns[2],
+                    Pid = int.Parse(columns[4].Replace(")", "").Replace("(", "")),
+                };
+
+                if (packages.Any(i => i.Name == package.Name))
+                    continue;
+
+                packages.Add(package);
+            }
+
+            packages = packages.OrderBy(i => i.Name).ToList();
+
+            return packages;
+        }
+
+        private static List<DumpsysPackages> ParseCFormat(string output)
+        {
+            var packages = new List<DumpsysPackages>();
+
+            var lines = output.Split(new string[] {Environment.NewLine}, StringSplitOptions.RemoveEmptyEntries);
 
 
             foreach (var line in lines)
@@ -76,10 +111,10 @@ namespace AndroidMemoryMonitor.Logic
                     continue;
 
                 var package = new DumpsysPackages()
-                {
-                    Name = columns[2],
-                    Pid = int.Parse(columns[3]),
-                };
+                              {
+                                  Name = columns[2],
+                                  Pid = int.Parse(columns[3]),
+                              };
 
                 packages.Add(package);
             }
@@ -179,29 +214,39 @@ namespace AndroidMemoryMonitor.Logic
 
             Meminfo meminfo;
 
-            switch (meminfoName)
+            if (meminfoName.Contains("Native") ||
+                meminfoName.Contains("Dalvik"))
             {
-                case "Native Heap":
-                case "TOTAL":
-                case "Dalvik Heap":
-                    meminfo = ParseMeminfoHeap(dataColumns);
-                    break;
-                case "Dalvik Other":
-                case "Stack":
-                case "Other dev":
-                case ".so mmap":
-                case ".apk mmap":
-                case ".ttf mmap":
-                case ".dex mmap":
-                case "Other mmap":
-                case "Graphics":
-                case "GL":
-                case "Unknown":
-                    meminfo = ParseMeminfo(dataColumns);
-                    break;
-                default:
-                    return null;
-                    break;
+                meminfo = ParseMeminfoHeap(dataColumns);
+                if (!(meminfoName.Contains("Heap")))
+                    meminfoName += " Heap";
+            }
+            else
+            {
+                switch (meminfoName)
+                {
+                    case "Native Heap":
+                    case "TOTAL":
+                    case "Dalvik Heap":
+                        meminfo = ParseMeminfoHeap(dataColumns);
+                        break;
+                    case "Dalvik Other":
+                    case "Stack":
+                    case "Other dev":
+                    case ".so mmap":
+                    case ".apk mmap":
+                    case ".ttf mmap":
+                    case ".dex mmap":
+                    case "Other mmap":
+                    case "Graphics":
+                    case "GL":
+                    case "Unknown":
+                        meminfo = ParseMeminfo(dataColumns);
+                        break;
+                    default:
+                        return null;
+                        break;
+                }
             }
 
 
@@ -222,7 +267,8 @@ namespace AndroidMemoryMonitor.Logic
             result.PssTotal = ParseInt(columnArray, 0);
             result.PrivateDirty = ParseInt(columnArray, 1);
             result.PrivateClean = ParseInt(columnArray, 2);
-            result.SwappedDirty = ParseInt(columnArray, 3);
+            if (columnArray.Length >= 4)
+                result.SwappedDirty = ParseInt(columnArray, 3);
         }
 
         private Meminfo ParseMeminfoHeap(string[] columnArray)
@@ -230,9 +276,13 @@ namespace AndroidMemoryMonitor.Logic
             var meminfoHeap = new MeminfoHeap();
             FillMeminfo(meminfoHeap, columnArray);
 
-            meminfoHeap.HeapSize = ParseInt(columnArray, 4);
-            meminfoHeap.HeapAlloc = ParseInt(columnArray, 5);
-            meminfoHeap.HeapFree = ParseInt(columnArray, 6);
+            int offset = 0;
+            if (columnArray.Length == 6)
+                offset = -1;
+
+            meminfoHeap.HeapSize = ParseInt(columnArray, 4 + offset);
+            meminfoHeap.HeapAlloc = ParseInt(columnArray, 5 + offset);
+            meminfoHeap.HeapFree = ParseInt(columnArray, 6 + offset);
 
             return meminfoHeap;
         }

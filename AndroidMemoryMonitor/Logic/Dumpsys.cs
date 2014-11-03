@@ -29,7 +29,7 @@ namespace AndroidMemoryMonitor.Logic
         public static string GetMeminfo(Device device)
         {
             var commandResultReceiver = new CommandResultReceiver();
-            device.ExecuteShellCommand(string.Format("dumpsys meminfo -c"), commandResultReceiver);
+            device.ExecuteShellCommand(string.Format("dumpsys meminfo"), commandResultReceiver);
 
             return commandResultReceiver.Result;
         }
